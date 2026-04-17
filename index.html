@@ -1,0 +1,1405 @@
+<!DOCTYPE html><html lang="id"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ticker Biaya MBG — Visualisasi Anggaran</title>
+<meta name="description" content="Visualisasi real-time anggaran program Makan Bergizi Gratis Indonesia sejak 6 Januari 2025.">
+<meta property="og:title" content="Ticker Biaya MBG">
+<meta property="og:description" content="Visualisasi real-time anggaran program Makan Bergizi Gratis Indonesia sejak 6 Januari 2025.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="module">
+import { WebHaptics } from 'https://unpkg.com/web-haptics@0.0.6/dist/index.js';
+window._haptics = new WebHaptics();
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#09090b;--card:#141414;--card-elevated:#18181b;--border:#262626;
+  --text:#e5e5e5;--muted:#737373;--dim:#525252;
+  --red:#e53e3e;--red-glow:#f56565;--red-dark:#991b1b;
+  --green:#34d399;--blue:#22d3ee;
+  --purple:#a855f7;
+}
+body{
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+  background:var(--bg);color:var(--text);
+  line-height:1.6;min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:'SF Mono','Cascadia Code','Fira Code',Consolas,'Courier New',monospace;font-feature-settings:'tnum' 1}
+
+.alert-bar{
+  background:var(--card);
+  border-top:2px solid var(--red);
+  padding:10px 16px;text-align:center;font-size:12px;
+  color:var(--muted);letter-spacing:0.3px;
+}
+
+.container{max-width:900px;margin:0 auto;padding:20px 16px 100px}
+
+header{text-align:center;padding:40px 0 30px}
+.header-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:3px;margin-bottom:8px}
+header h1{font-size:clamp(2.4rem,6vw,4rem);font-weight:800;color:var(--red);letter-spacing:-1px}
+.subtitle{color:var(--muted);font-size:14px;margin-top:8px;font-style:italic}
+
+.live-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:#1c1c1c;border:1px solid var(--red-dark);
+  border-radius:20px;padding:4px 14px;margin-top:16px;
+  font-size:12px;color:var(--red);font-weight:600;letter-spacing:1px;text-transform:uppercase;
+}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--red);animation:blink 1s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+.cost-section{text-align:center;padding:40px 0}
+.cost-label{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px}
+.cost-value{
+  font-size:clamp(2rem,5vw,3.8rem);font-weight:300;color:var(--red-glow);
+  letter-spacing:-0.5px;word-break:break-all;
+  animation:counterReveal 1.2s ease-out;
+}
+@keyframes counterReveal{from{transform:scale(1.05);filter:blur(8px);opacity:0}to{transform:scale(1);filter:blur(0);opacity:1}}
+.cost-usd{font-size:clamp(0.9rem,2.5vw,1.3rem);color:var(--dim);margin-top:8px}
+
+.elapsed{text-align:center;padding:16px 0 32px}
+.elapsed-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+.elapsed-value{font-size:clamp(1rem,3vw,1.5rem);color:var(--text);letter-spacing:1px}
+.elapsed-value span{color:var(--muted);font-size:0.7em}
+
+.section{padding:40px 0}
+.section-title{
+  font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);
+  margin-bottom:20px;
+}
+
+.rate-grid{
+  display:flex;background:var(--card);
+  border:1px solid var(--border);border-radius:8px;overflow:hidden;
+}
+.rate-card{
+  flex:1;padding:16px;text-align:center;transition:background 0.2s;
+}
+.rate-card:not(:first-child){border-left:1px solid var(--border)}
+.rate-card:hover{background:var(--card-elevated)}
+.rate-card .label{font-size:11px;color:var(--muted);letter-spacing:0.5px;margin-bottom:8px}
+.rate-card .value{font-size:clamp(1rem,2.5vw,1.4rem);font-weight:600;color:var(--text)}
+.rate-card .sub{font-size:11px;color:var(--dim);margin-top:4px}
+
+/* Node income section */
+.node-section{
+  background:var(--card);
+  border:1px solid var(--border);border-radius:8px;
+  padding:28px;margin-top:4px;
+}
+.node-header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.node-header h3{font-size:16px;color:var(--green);font-weight:600;letter-spacing:0.5px}
+.node-subtitle{font-size:12px;color:var(--dim);margin-bottom:20px}
+.node-counter{text-align:center;margin-bottom:20px}
+.node-counter .node-val{
+  font-size:clamp(1.3rem,4vw,2.2rem);font-weight:300;color:var(--green);
+}
+.node-counter .node-label{font-size:12px;color:var(--muted);margin-top:4px}
+.node-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.node-stat{
+  background:rgba(52,211,153,0.04);border:1px solid var(--border);
+  border-radius:6px;padding:12px;text-align:center;
+}
+.node-stat .ns-val{font-size:1.1rem;font-weight:300;color:var(--green)}
+.node-stat .ns-lbl{font-size:10px;color:var(--muted);margin-top:2px;letter-spacing:0.5px}
+
+/* Comparisons */
+.comparison-grid{display:flex;flex-direction:column}
+.comp-card{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 4px;border-bottom:1px solid var(--border);
+  transition:opacity 0.2s;
+}
+.comp-card:hover{opacity:0.8}
+.comp-card .comp-value{font-size:1.1rem;font-weight:500;color:var(--red-glow);white-space:nowrap;text-align:right;min-width:80px}
+.comp-card .comp-value.global{color:var(--blue)}
+.comp-card .comp-label{flex:1;font-size:14px;color:var(--muted)}
+.comp-card .comp-anchor{
+  font-size:10px;font-weight:600;
+  color:var(--dim);
+  letter-spacing:0.3px;text-transform:uppercase;white-space:nowrap;
+}
+
+.comp-sub-label{font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;margin:20px 0 12px}
+.comp-sub-label:first-of-type{margin-top:0}
+
+/* Collapsible comparisons */
+.comp-hidden{display:none}
+.comp-section.expanded .comp-hidden{display:flex}
+.show-more-btn{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  width:100%;margin-top:16px;padding:12px;
+  background:var(--card);border:1px solid var(--border);border-radius:8px;
+  color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;
+  transition:all 0.2s;letter-spacing:0.5px;
+}
+.show-more-btn:hover{border-color:var(--muted);color:var(--text)}
+.show-more-btn .arrow{transition:transform 0.3s}
+.comp-section.expanded .show-more-btn .arrow{transform:rotate(180deg)}
+
+/* Poisoning section */
+.poison-section{
+  background:var(--card);
+  border:1px solid rgba(229,62,62,0.2);border-radius:8px;padding:28px;margin-top:4px;
+}
+.poison-header{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.poison-header h3{font-size:16px;color:var(--red-glow);font-weight:600;letter-spacing:0.5px}
+.poison-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.poison-stat{text-align:center;padding:12px}
+.poison-stat .num{font-size:clamp(1.3rem,3vw,1.8rem);font-weight:300;color:var(--red-glow)}
+.poison-stat .lbl{font-size:11px;color:#fca5a5;margin-top:4px;letter-spacing:0.5px}
+.poison-note{font-size:12px;color:var(--dim);margin-top:16px;text-align:center;font-style:italic}
+
+.breakdown-table{width:100%;border-collapse:collapse}
+.breakdown-table th,.breakdown-table td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);font-size:14px}
+.breakdown-table th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:1px}
+.breakdown-table td:last-child{text-align:right;font-weight:600}
+.breakdown-bar{height:3px;border-radius:2px;margin-top:4px;background:var(--red);opacity:0.5}
+
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px;text-align:center}
+.stat-card .stat-num{font-size:1.3rem;font-weight:600;color:var(--text)}
+.stat-card .stat-label{font-size:12px;color:var(--muted);margin-top:4px}
+.stat-card.highlight .stat-num{color:var(--red-glow);font-size:1.8rem}
+
+.quote-block{
+  text-align:left;padding:24px;
+  border-left:3px solid var(--red);
+  border-radius:0;margin-top:4px;background:transparent;
+}
+.quote-block blockquote{font-size:clamp(1rem,2.5vw,1.2rem);color:var(--text);font-style:italic;line-height:1.7;max-width:600px}
+.quote-block cite{display:block;font-size:13px;color:var(--dim);margin-top:12px;font-style:normal}
+
+/* Info tooltip */
+.info-trigger{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:20px;height:20px;border-radius:50%;
+  font-size:12px;font-style:normal;font-weight:700;
+  color:var(--muted);border:1px solid var(--border);
+  cursor:pointer;vertical-align:middle;margin-left:6px;
+  transition:all 0.2s;position:relative;
+}
+.info-trigger:hover{color:var(--text);border-color:var(--muted)}
+.info-popover{
+  display:none;position:absolute;top:100%;left:50%;
+  transform:translateX(-50%);margin-top:12px;
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:16px 18px;width:max-content;max-width:360px;
+  font-size:12px;color:var(--muted);line-height:1.7;
+  text-align:left;z-index:50;
+  box-shadow:0 8px 32px rgba(0,0,0,0.5);
+  animation:popoverIn 0.15s ease-out;
+}
+.info-popover::before{
+  content:'';position:absolute;top:-6px;left:50%;transform:translateX(-50%);
+  border-left:6px solid transparent;border-right:6px solid transparent;
+  border-bottom:6px solid var(--border);
+}
+.info-popover::after{
+  content:'';position:absolute;top:-5px;left:50%;transform:translateX(-50%);
+  border-left:5px solid transparent;border-right:5px solid transparent;
+  border-bottom:5px solid var(--card);
+}
+.info-popover.show{display:block}
+@keyframes popoverIn{from{opacity:0;transform:translateX(-50%) translateY(4px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@media(min-width:601px){.info-trigger:hover .info-popover{display:block}}
+
+.methodology{padding:32px 0;font-size:13px;color:var(--dim);line-height:1.8}
+.methodology h3{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px}
+.methodology p{margin-bottom:12px}
+.methodology a{color:var(--blue);text-decoration:none}
+.methodology a:hover{text-decoration:underline}
+
+footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);font-size:12px;color:var(--dim)}
+.share-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--card);border:1px solid var(--border);border-radius:6px;
+  padding:8px 16px;margin:12px 4px 0;color:var(--muted);font-size:12px;cursor:pointer;transition:all 0.2s;
+}
+.share-btn:hover{border-color:var(--muted);color:var(--text)}
+
+.fab-story{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:100;
+  display:flex;align-items:center;gap:8px;
+  background:var(--card-elevated);
+  color:var(--text);font-weight:600;font-size:15px;
+  border:1px solid var(--red);border-radius:50px;
+  padding:14px 28px;cursor:pointer;
+  box-shadow:0 4px 24px rgba(0,0,0,0.4);
+  transition:transform 0.2s,box-shadow 0.2s;letter-spacing:0.3px;
+}
+.fab-story:hover{transform:translateX(-50%) scale(1.05);box-shadow:0 6px 32px rgba(0,0,0,0.5)}
+.fab-story:active{transform:translateX(-50%) scale(0.97)}
+
+.phase-badge{
+  display:inline-block;background:var(--card);border:1px solid var(--border);
+  border-radius:4px;padding:2px 10px;font-size:11px;color:var(--muted);margin-top:10px;letter-spacing:0.5px;
+}
+
+@media(max-width:600px){
+  .container{padding:12px 12px 100px}
+  .rate-grid{display:grid;grid-template-columns:1fr 1fr}
+  .rate-card:not(:first-child){border-left:none}
+  .rate-card:nth-child(-n+2){border-bottom:1px solid var(--border)}
+  .rate-card:nth-child(odd){border-right:1px solid var(--border)}
+  .comp-card{flex-wrap:wrap}
+  .poison-grid,.stats-grid,.node-grid{grid-template-columns:1fr 1fr}
+  .breakdown-table th:nth-child(3),.breakdown-table td:nth-child(3){display:none}
+  .fab-story{bottom:16px;padding:12px 22px;font-size:14px}
+}
+@media(max-width:380px){
+  .poison-grid,.node-grid{grid-template-columns:1fr}
+}
+
+/* Story preview modal */
+.story-modal{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,0.95);
+  display:flex;flex-direction:column;align-items:center;
+  padding:20px 16px;gap:14px;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  animation:storyFadeIn 0.25s ease-out;
+}
+@keyframes storyFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes storySlideUp{from{opacity:0;transform:translateY(20px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.story-modal-close{
+  position:fixed;top:16px;right:16px;z-index:201;
+  background:rgba(255,255,255,0.08);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,0.1);color:#e5e5e5;font-size:28px;
+  cursor:pointer;width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  border-radius:50%;transition:all 0.2s;
+}
+.story-modal-close:hover{background:rgba(255,255,255,0.15);transform:scale(1.1)}
+.story-preview{
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  margin-top:36px;animation:storySlideUp 0.4s ease-out both;
+}
+.story-phone{
+  background:#000;border-radius:28px;border:3px solid #2a2a2a;
+  padding:10px 6px 8px;
+  box-shadow:0 0 80px rgba(229,62,62,0.04),0 25px 50px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.story-phone-notch{width:72px;height:5px;background:#2a2a2a;border-radius:3px;margin:0 auto 6px}
+.story-phone canvas{display:block;max-width:min(78vw,320px);max-height:55vh;border-radius:16px}
+.story-toggles{
+  display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:540px;
+  animation:storySlideUp 0.4s 0.08s ease-out both;
+}
+.story-toggle{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;
+  padding:10px 14px;font-size:13px;color:rgba(255,255,255,0.6);cursor:pointer;
+  user-select:none;transition:all 0.2s;
+}
+.story-toggle:hover{background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.15)}
+.story-toggle:has(input:checked){border-color:rgba(52,211,153,0.3);color:#e5e5e5}
+.story-toggle:has(input:disabled){opacity:0.35;cursor:default}
+.story-toggle:has(input:disabled):hover{background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.08)}
+.story-toggle input{display:none}
+.toggle-slider{
+  width:38px;height:22px;background:rgba(255,255,255,0.1);border-radius:11px;
+  position:relative;transition:background 0.25s;flex-shrink:0;
+}
+.toggle-slider::after{
+  content:'';position:absolute;top:3px;left:3px;
+  width:16px;height:16px;background:rgba(255,255,255,0.35);border-radius:50%;
+  transition:transform 0.25s cubic-bezier(0.4,0,0.2,1),background 0.25s;
+}
+.story-toggle input:checked+.toggle-slider{background:var(--green)}
+.story-toggle input:checked+.toggle-slider::after{transform:translateX(16px);background:#fff}
+.story-toggle input:disabled+.toggle-slider{background:rgba(255,255,255,0.05)}
+.story-toggle input:disabled+.toggle-slider::after{background:rgba(255,255,255,0.15)}
+.story-actions{
+  display:flex;gap:10px;padding-bottom:20px;
+  animation:storySlideUp 0.4s 0.14s ease-out both;
+}
+.story-action-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  font-weight:700;font-size:15px;border:none;border-radius:14px;
+  padding:14px 28px;cursor:pointer;transition:all 0.2s;min-width:140px;
+}
+.story-action-btn.btn-download{
+  background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:#e5e5e5;
+}
+.story-action-btn.btn-download:hover{background:rgba(255,255,255,0.13);border-color:rgba(255,255,255,0.22)}
+.story-action-btn.btn-share{
+  background:var(--red);color:#fff;border:none;
+}
+.story-action-btn:hover{transform:scale(1.03)}
+.story-action-btn:active{transform:scale(0.97)}
+.story-toast{
+  position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);z-index:300;
+  background:rgba(52,211,153,0.9);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:600;
+  opacity:0;transition:all 0.3s ease;pointer-events:none;
+}
+.story-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:600px){
+  .story-phone canvas{max-width:72vw}
+  .story-toggle{padding:8px 12px;font-size:12px}
+  .story-action-btn{padding:12px 20px;font-size:14px;min-width:120px}
+}
+
+/* Session ticker */
+.session-section{text-align:center;padding:12px 0 0}
+.session-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px}
+.session-counter{
+  font-size:clamp(1.4rem,3vw,2rem);font-weight:300;color:var(--red-glow);
+  letter-spacing:-0.3px;
+}
+.session-equiv{
+  display:flex;flex-wrap:wrap;justify-content:center;gap:4px 10px;
+  margin-top:10px;font-size:12px;color:var(--dim);
+  font-family:'SF Mono','Cascadia Code','Fira Code',Consolas,'Courier New',monospace;
+  font-feature-settings:'tnum' 1;
+}
+.session-equiv span{white-space:nowrap}
+@media(max-width:600px){
+  .session-equiv{font-size:11px;gap:3px 8px}
+}
+.bubble-toggle{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:5px 12px;margin-top:10px;
+  font-size:11px;color:var(--muted);cursor:pointer;
+  transition:all 0.2s;letter-spacing:0.3px;
+}
+.bubble-toggle:hover{border-color:var(--muted);color:var(--text)}
+.bubble-toggle.active{border-color:var(--red-dark);color:var(--red)}
+.bubble-toggle .dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--muted);transition:background 0.2s;
+}
+.bubble-toggle.active .dot{background:var(--red);animation:blink 1s ease-in-out infinite}
+
+/* Floating milestone bubbles */
+#bubble-container{
+  position:fixed;inset:0;pointer-events:none;z-index:90;overflow:hidden;
+}
+.milestone-bubble{
+  position:absolute;bottom:-40px;
+  background:rgba(20,20,20,0.7);
+  border:1px solid currentColor;
+  border-radius:20px;padding:5px 12px;
+  font-family:'SF Mono','Cascadia Code','Fira Code',Consolas,monospace;
+  font-size:11px;font-weight:500;
+  white-space:nowrap;
+  animation:bubbleFloat 4s ease-out forwards;
+}
+@keyframes bubbleFloat{
+  0%{transform:scale(0.7);opacity:0}
+  8%{transform:scale(1);opacity:0.7}
+  60%{opacity:0.5}
+  100%{transform:translateY(-60vh) scale(1);opacity:0}
+}
+</style>
+</head>
+<body>
+
+<div class="alert-bar mono">
+  Program Makan Bergizi Gratis — Berjalan sejak 6 Januari 2025 — Anggaran 2026: Rp 335 Triliun
+</div>
+
+<div class="container">
+
+<header>
+  <div class="header-label">Ticker Biaya</div>
+  <h1>MBG</h1>
+  <div class="subtitle">Visualisasi real-time anggaran program Makan Bergizi Gratis</div>
+  <div class="live-badge"><span class="live-dot"></span> LIVE</div>
+  <div class="phase-badge mono" id="phase-badge">FASE 2 · 2026</div>
+</header>
+
+<!-- Main Cost Counter -->
+<div class="cost-section">
+  <div class="cost-label">Total Anggaran Terpakai Sejak 6 Januari 2025
+    <span class="info-trigger" onclick="toggleInfoPopover(event)" role="button" tabindex="0" aria-label="Informasi perhitungan">ⓘ
+      <div class="info-popover" id="info-popover">
+        <strong style="color:var(--text)">Perhitungan:</strong><br>
+        Fase 1: Rp 52,9 T realisasi 2025 (rata Rp 147 M/hari)<br>
+        Fase 2: Rp 335 T/tahun = Rp 918 M/hari (sejak 1 Jan 2026)<br>
+        Total = Fase 1 + (hari sejak 1 Jan 2026 × Rp 918 M)<br><br>
+        <span style="color:var(--dim);font-size:11px">Angka ini berdasarkan anggaran yang dialokasikan, bukan belanja aktual yang terverifikasi.</span>
+      </div>
+    </span>
+  </div>
+  <div class="cost-value mono" id="cost-counter">Rp 118.838.799.511.510</div>
+  <div class="cost-usd mono" id="cost-usd">~$7.20 miliar USD</div>
+</div>
+
+<!-- Session Ticker -->
+<div class="session-section">
+  <div class="session-label">Terpakai sejak kamu membuka halaman ini</div>
+  <div class="session-counter mono" id="session-counter">Rp 6.841.070</div>
+  <div class="session-equiv" id="session-equivalents"><span>1955x Indomie</span><span>195x GoFood</span><span>1.4x UMR Jakarta</span><span>0.2x iPhone 17 Pro Max</span><span>0.2x LV Speedy</span><span>0.1x Chrome Hearts</span><span>0.1x MacBook Pro M4</span></div>
+  <button class="bubble-toggle" id="bubble-toggle" onclick="toggleBubbles()">
+    <span class="dot"></span> <span id="bubble-toggle-text">Bubbles OFF</span>
+  </button>
+</div>
+
+<!-- Elapsed Time -->
+<div class="elapsed">
+  <div class="elapsed-label">Waktu Berjalan Sejak Peluncuran</div>
+  <div class="elapsed-value mono" id="elapsed-time">431<span> hari </span>13<span> jam </span>15<span> menit </span>01<span> detik</span></div>
+</div>
+
+<!-- Burn Rate -->
+<div class="section">
+  <div class="section-title">Laju Pengeluaran</div>
+  <div class="rate-grid">
+    <div class="rate-card">
+      <div class="label">Per Detik</div>
+      <div class="value mono" id="rate-sec">Rp 10.6 jt</div>
+      <div class="sub">berdasarkan anggaran harian</div>
+    </div>
+    <div class="rate-card">
+      <div class="label">Per Menit</div>
+      <div class="value mono" id="rate-min">Rp 637.4 jt</div>
+      <div class="sub">rata-rata alokasi</div>
+    </div>
+    <div class="rate-card">
+      <div class="label">Per Jam</div>
+      <div class="value mono" id="rate-hour">Rp 38.2 M</div>
+      <div class="sub">estimasi berkelanjutan</div>
+    </div>
+    <div class="rate-card">
+      <div class="label">Per Hari</div>
+      <div class="value mono" id="rate-day">Rp 917.8 M</div>
+      <div class="sub">365 hari per tahun</div>
+    </div>
+  </div>
+</div>
+
+<!-- Per-Node Income Ticker -->
+<div class="section">
+  <div class="section-title">Pendapatan per Dapur MBG (SPPG)</div>
+  <div class="node-section">
+    <div class="node-header">
+      <h3>Alokasi per Node Dapur</h3>
+    </div>
+    <div class="node-subtitle">Berdasarkan Rp 335 T / 35.000 target dapur — alokasi rata-rata per SPPG</div>
+
+    <div class="node-counter">
+      <div class="cost-label">Pendapatan per Dapur Hari Ini</div>
+      <div class="node-val mono" id="node-today">Rp 22.126.169</div>
+      <div class="node-label">terus bertambah sejak pukul 00:00 WIB</div>
+    </div>
+
+    <div class="node-grid">
+      <div class="node-stat">
+        <div class="ns-val mono" id="node-sec">Rp 303</div>
+        <div class="ns-lbl">Per Detik</div>
+      </div>
+      <div class="node-stat">
+        <div class="ns-val mono" id="node-min">Rp 18.210</div>
+        <div class="ns-lbl">Per Menit</div>
+      </div>
+      <div class="node-stat">
+        <div class="ns-val mono" id="node-hour">Rp 1.1 jt</div>
+        <div class="ns-lbl">Per Jam</div>
+      </div>
+      <div class="node-stat">
+        <div class="ns-val mono" id="node-day">Rp 26.2 jt</div>
+        <div class="ns-lbl">Per Hari</div>
+      </div>
+      <div class="node-stat">
+        <div class="ns-val mono" id="node-month">Rp 797.6 jt</div>
+        <div class="ns-lbl">Per Bulan</div>
+      </div>
+      <div class="node-stat">
+        <div class="ns-val mono" id="node-year">Rp 9.6 M</div>
+        <div class="ns-lbl">Per Tahun</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Comparisons -->
+<div class="section comp-section" id="comp-section">
+  <div class="section-title">Perbandingan Skala Anggaran</div>
+
+  <div class="comp-sub-label">Skala Kehidupan Sehari-hari</div>
+  <div class="comparison-grid">
+    <div class="comp-card">
+      <div class="comp-label">bungkus Indomie (Rp 3.500)</div>
+      <div class="comp-anchor">per hari</div>
+      <div class="comp-value mono" id="comp-indomie">262.2 juta</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-label">porsi nasi padang ayam (Rp 25.000)</div>
+      <div class="comp-anchor">per hari</div>
+      <div class="comp-value mono" id="comp-padang">36.7 juta</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-label">gelas kopi Starbucks (Rp 65.000)</div>
+      <div class="comp-anchor">per hari</div>
+      <div class="comp-value mono" id="comp-kopi">14.1 juta</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-label">liter Pertamax (Rp 13.300)</div>
+      <div class="comp-anchor">per hari</div>
+      <div class="comp-value mono" id="comp-bensin">69.0 juta</div>
+    </div>
+    <!-- Hidden extras -->
+    <div class="comp-card comp-hidden">
+      <div class="comp-label">gaji bulanan guru honorer (Rp 2 jt)</div>
+      <div class="comp-anchor">per bulan</div>
+      <div class="comp-value mono" id="comp-guru">1.1 juta</div>
+    </div>
+    <div class="comp-card comp-hidden">
+      <div class="comp-label">motor Honda Beat (Rp 18,5 jt)</div>
+      <div class="comp-anchor">per bulan</div>
+      <div class="comp-value mono" id="comp-motor">1.5 juta</div>
+    </div>
+    <div class="comp-card comp-hidden">
+      <div class="comp-label">tiket pesawat Jakarta-Bali (Rp 1,2 jt)</div>
+      <div class="comp-anchor">per hari</div>
+      <div class="comp-value mono" id="comp-tiket">765 ribu</div>
+    </div>
+    <div class="comp-card comp-hidden">
+      <div class="comp-label">rumah subsidi FLPP (Rp 150 jt)</div>
+      <div class="comp-anchor">per bulan</div>
+      <div class="comp-value mono" id="comp-rumah">184 ribu</div>
+    </div>
+    <div class="comp-card comp-hidden">
+      <div class="comp-label">puskesmas baru (Rp 5 miliar)</div>
+      <div class="comp-anchor">per bulan</div>
+      <div class="comp-value mono" id="comp-puskesmas">6 ribu</div>
+    </div>
+    <div class="comp-card comp-hidden">
+      <div class="comp-label">gedung sekolah baru (Rp 8 miliar)</div>
+      <div class="comp-anchor">per bulan</div>
+      <div class="comp-value mono" id="comp-sekolah">3 ribu</div>
+    </div>
+  </div>
+
+  <div class="comp-sub-label">Skala Nasional & Global</div>
+  <div class="comparison-grid">
+    <div class="comp-card">
+      <div class="comp-label">beasiswa LPDP ke Harvard, S2 2 tahun (~Rp 3 M)</div>
+      <div class="comp-anchor">per tahun</div>
+      <div class="comp-value global mono" id="comp-lpdp">112 ribu</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-label">proyek MRT Jakarta Fase 1 (Rp 16 T)</div>
+      <div class="comp-anchor">per tahun</div>
+      <div class="comp-value global mono" id="comp-mrt">20.9×</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-label">anggaran pertahanan RI 2025 (Rp 245,2 T)</div>
+      <div class="comp-anchor">per tahun</div>
+      <div class="comp-value global mono" id="comp-defense">1.4×</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-label">anggaran NASA setahun (~$25,4 M)</div>
+      <div class="comp-anchor">per tahun</div>
+      <div class="comp-value global mono" id="comp-nasa">80.9%</div>
+    </div>
+    <!-- Hidden extras -->
+    <div class="comp-card comp-hidden">
+      <div class="comp-label">total biaya IKN Nusantara (Rp 466 T)</div>
+      <div class="comp-anchor">per tahun</div>
+      <div class="comp-value global mono" id="comp-ikn">71.9%</div>
+    </div>
+    <div class="comp-card comp-hidden">
+      <div class="comp-label">anggaran kesehatan RI 2025 (Rp 187 T)</div>
+      <div class="comp-anchor">per tahun</div>
+      <div class="comp-value global mono" id="comp-health">1.8×</div>
+    </div>
+    <div class="comp-card comp-hidden">
+      <div class="comp-label">anggaran pendidikan RI 2025 (Rp 660 T)</div>
+      <div class="comp-anchor">per tahun</div>
+      <div class="comp-value global mono" id="comp-edu">50.8%</div>
+    </div>
+    <div class="comp-card comp-hidden">
+      <div class="comp-label">Bansos PKH setahun (Rp 29 T)</div>
+      <div class="comp-anchor">per tahun</div>
+      <div class="comp-value global mono" id="comp-pkh">11.6×</div>
+    </div>
+    <div class="comp-card comp-hidden">
+      <div class="comp-label">James Webb Space Telescope (~$10 M)</div>
+      <div class="comp-anchor">per tahun</div>
+      <div class="comp-value global mono" id="comp-jwst">2.1×</div>
+    </div>
+    <div class="comp-card comp-hidden">
+      <div class="comp-label">PDB Indonesia 2025 (Rp 22.000 T)</div>
+      <div class="comp-anchor">per tahun</div>
+      <div class="comp-value global mono" id="comp-gdp">1.5%</div>
+    </div>
+  </div>
+
+  <button class="show-more-btn" onclick="toggleComparisons()">
+    <span id="show-more-text">Lihat Semua Perbandingan</span>
+    <span class="arrow">▼</span>
+  </button>
+</div>
+
+<!-- Poisoning Stats -->
+<div class="section">
+  <div class="section-title">Catatan Keamanan Pangan</div>
+  <div class="poison-section">
+    <div class="poison-header">
+      <h3>Data Insiden Keamanan Pangan MBG</h3>
+    </div>
+    <div class="poison-grid">
+      <div class="poison-stat">
+        <div class="num mono">21.254+</div>
+        <div class="lbl">Terdampak (s/d Jan 2026)</div>
+      </div>
+      <div class="poison-stat">
+        <div class="num mono">34</div>
+        <div class="lbl">Insiden Keracunan Massal (Jan-Sep 2025)</div>
+      </div>
+      <div class="poison-stat">
+        <div class="num mono">40+</div>
+        <div class="lbl">Dapur Dihentikan Operasinya</div>
+      </div>
+      <div class="poison-stat">
+        <div class="num mono" id="cost-per-victim">Rp 2.5 M</div>
+        <div class="lbl">Anggaran per Siswa Terdampak</div>
+      </div>
+    </div>
+    <div class="poison-note">
+      Data dari JPPI per Januari 2026. BGN menargetkan zero insiden di 2026
+      melalui kewajiban sertifikasi SLHS untuk semua SPPG.
+    </div>
+  </div>
+</div>
+
+<!-- Budget Breakdown Per Portion -->
+<div class="section">
+  <div class="section-title">Anatomi Rp 13.000–15.000 per Porsi</div>
+  <table class="breakdown-table">
+    <thead>
+      <tr><th>Komponen</th><th>Alokasi</th><th>Persentase</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Bahan makanan</td>
+        <td class="mono">Rp 8.000 - 10.000</td>
+        <td class="mono">53-67%<div class="breakdown-bar" style="width:60%"></div></td>
+      </tr>
+      <tr>
+        <td>Operasional (listrik, gas, air, internet, insentif)</td>
+        <td class="mono">Rp 3.000</td>
+        <td class="mono">20%<div class="breakdown-bar" style="width:20%"></div></td>
+      </tr>
+      <tr>
+        <td>Fasilitas (sewa, peralatan, IPAL)</td>
+        <td class="mono">Rp 2.000</td>
+        <td class="mono">13%<div class="breakdown-bar" style="width:13%"></div></td>
+      </tr>
+    </tbody>
+  </table>
+  <div style="font-size:12px;color:var(--dim);margin-top:12px;font-style:italic;text-align:center">
+    Rp 13.000/porsi untuk balita & PAUD–SD kelas 3 — Rp 15.000/porsi untuk SD kelas 4+, ibu hamil & menyusui.
+  </div>
+</div>
+
+<!-- Program Stats -->
+<div class="section">
+  <div class="section-title">Statistik Program</div>
+  <div class="stats-grid">
+    <div class="stat-card highlight">
+      <div class="stat-num mono">Rp 71 T</div>
+      <div class="stat-label">Anggaran 2025 (H1)</div>
+    </div>
+    <div class="stat-card highlight">
+      <div class="stat-num mono">Rp 335 T</div>
+      <div class="stat-label">Anggaran 2026</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num mono">82,9 jt</div>
+      <div class="stat-label">Target Penerima</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num mono">35.000</div>
+      <div class="stat-label">Target Dapur</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num mono">Rp 52,9 T</div>
+      <div class="stat-label">Realisasi 2025 (74,6%)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num mono">190</div>
+      <div class="stat-label">Dapur Hari Pertama</div>
+    </div>
+  </div>
+</div>
+
+<!-- Quote -->
+<div class="section" style="border:none">
+  <div class="quote-block">
+    <blockquote>
+      "Transparansi anggaran adalah hak setiap warga negara. Angka-angka ini berasal dari data resmi pemerintah — silakan tarik kesimpulan sendiri."
+    </blockquote>
+    <cite>— UU No. 14 Tahun 2008 tentang Keterbukaan Informasi Publik</cite>
+  </div>
+</div>
+
+<!-- Methodology -->
+<div class="methodology">
+  <h3>Metodologi & Sumber</h3>
+  <p>
+    Ticker ini menghitung estimasi pengeluaran program MBG berdasarkan data resmi pemerintah.
+    Perhitungan dibagi menjadi dua fase:
+  </p>
+  <p>
+    <strong>Fase 1 (6 Jan – 31 Des 2025):</strong> Total realisasi Rp 52,9 triliun (74,6%)
+    dibagi rata selama 360 hari = ~Rp 147 miliar/hari.
+  </p>
+  <p>
+    <strong>Fase 2 (1 Jan 2026 – sekarang):</strong> Anggaran Rp 335 triliun/tahun
+    = ~Rp 918 miliar/hari.
+  </p>
+  <p>
+    <strong>Pendapatan per Dapur:</strong> Rp 335 T / 35.000 target dapur = ~Rp 9,6 miliar/dapur/tahun.
+    Angka ini adalah rata-rata alokasi, bukan pendapatan bersih operator.
+  </p>
+  <p>
+    Kurs USD menggunakan estimasi Rp 16.500/USD (rata-rata 2025).
+    Estimasi ini berdasarkan anggaran yang dialokasikan, bukan belanja aktual yang terverifikasi.
+    Biaya aktual bisa berbeda karena faktor realisasi, biaya kesehatan, dan administrasi tambahan.
+  </p>
+  <p><strong>Sumber — Anggaran & Alokasi:</strong></p>
+  <p>
+    <a href="https://en.antaranews.com/news/373701/indonesia-allocates-207-bln-for-2026-free-nutritious-meals-program" target="_blank">ANTARA News</a> — alokasi Rp 335 T 2026 •
+    <a href="https://infopublik.id/headline/pemerintah-alokasikan-anggaran-mbg-rp335-triliun-untuk-2026" target="_blank">InfoPublik</a> — pengumuman alokasi pemerintah •
+    <a href="https://www.pajak.com/pajak/realisasi-anggaran-mbg-2025-capai-rp529-triliun/" target="_blank">Pajak.com</a> — realisasi 2025 Rp 52,9 T
+  </p>
+  <p><strong>Sumber — Biaya Per Porsi:</strong></p>
+  <p>
+    <a href="https://www.cnbcindonesia.com/news/20260224115258-4-713364/bgn-anggaran-bahan-makan-mbg-rp-8000-rp10000-bukan-rp15000" target="_blank">CNBC Indonesia</a> — BGN klarifikasi Rp 8.000-10.000/porsi •
+    <a href="https://www.kompas.com/tren/read/2025/01/10/120000465/rincian-biaya-makan-bergizi-gratis" target="_blank">Kompas</a> — rincian biaya per porsi
+  </p>
+  <p><strong>Sumber — Insiden Keamanan Pangan:</strong></p>
+  <p>
+    <a href="https://tempo.co/nasional/jppi-21254-korban-keracunan-mbg-kumulatif" target="_blank">Tempo</a> — JPPI 21.254 korban kumulatif •
+    <a href="https://www.joglosemarnews.com/2026/01/jppi-catat-1242-kasus-baru-keracunan-mbg-januari-2026/" target="_blank">Joglosemar News</a> — 1.242 kasus baru Jan 2026 •
+    <a href="https://thediplomat.com/2025/10/indonesias-free-meals-program-under-fire-for-safety-failures-and-governance-breakdown/" target="_blank">The Diplomat</a> — analisis kegagalan keamanan •
+    <a href="https://www.foodsafetynews.com/2025/10/thousands-sickened-by-school-food-in-indonesia/" target="_blank">Food Safety News</a> — ribuan siswa sakit
+  </p>
+  <p><strong>Sumber — Data Komparatif:</strong></p>
+  <p>
+    <a href="https://www.cnbcindonesia.com/news/anggaran-pertahanan-2025-rp245-triliun" target="_blank">CNBC Indonesia</a> /
+    <a href="https://www.bloombergtechnoz.com/detail-news/anggaran-pertahanan-ri-2025-naik-jadi-rp2452-triliun" target="_blank">Bloomberg Technoz</a> — anggaran pertahanan Rp 245,2 T •
+    <a href="https://www.inews.id/news/nasional/target-35000-sppg-mbg-2026" target="_blank">iNews</a> — target 35.000 SPPG 2026 •
+    <a href="https://www.idxchannel.com/economics/target-dapur-mbg-2026-naik-jadi-35000" target="_blank">IDX Channel</a> — target dapur 2026
+  </p>
+</div>
+
+<footer>
+  <div style="margin-bottom:8px">Data terakhir diperbarui: Maret 2026</div>
+  <button class="share-btn" onclick="copyLink()">Salin Link</button>
+  <button class="share-btn" onclick="shareTwitter()">𝕏 Bagikan</button>
+  <div id="copy-feedback" style="color:var(--green);margin-top:8px;font-size:12px;opacity:0;transition:opacity 0.3s"></div>
+</footer>
+
+</div>
+
+<!-- Story Preview Modal -->
+<div class="story-modal" id="story-modal" style="display:none" onclick="if(event.target===this)closeStoryModal()">
+  <button class="story-modal-close" onclick="closeStoryModal()">×</button>
+  <div class="story-preview">
+    <div class="story-phone">
+      <div class="story-phone-notch"></div>
+      <canvas id="story-preview-canvas"></canvas>
+    </div>
+  </div>
+  <div class="story-toggles">
+    <label class="story-toggle">
+      <span>Counter utama</span>
+      <input type="checkbox" checked="" disabled="">
+      <span class="toggle-slider"></span>
+    </label>
+    <label class="story-toggle">
+      <span>Laju pengeluaran</span>
+      <input type="checkbox" id="toggle-burnRate" onchange="updateStoryPreview()">
+      <span class="toggle-slider"></span>
+    </label>
+    <label class="story-toggle">
+      <span>Pendapatan dapur</span>
+      <input type="checkbox" id="toggle-nodeIncome" checked="" onchange="updateStoryPreview()">
+      <span class="toggle-slider"></span>
+    </label>
+    <label class="story-toggle">
+      <span>Perbandingan</span>
+      <input type="checkbox" id="toggle-comparisons" checked="" onchange="updateStoryPreview()">
+      <span class="toggle-slider"></span>
+    </label>
+    <label class="story-toggle">
+      <span>Keamanan pangan</span>
+      <input type="checkbox" id="toggle-foodSafety" checked="" onchange="updateStoryPreview()">
+      <span class="toggle-slider"></span>
+    </label>
+  </div>
+  <div class="story-actions">
+    <button class="story-action-btn btn-download" onclick="downloadStory()">Download</button>
+    <button class="story-action-btn btn-share" onclick="shareStory()">Bagikan</button>
+  </div>
+</div>
+<div class="story-toast" id="story-toast"></div>
+
+<button class="fab-story" onclick="openStoryModal()">Share to Story</button>
+
+<div id="bubble-container"></div>
+
+<script>
+// === CONFIG ===
+var PROGRAM_START = new Date('2025-01-06T07:00:00+07:00');
+var PHASE_2_START = new Date('2026-01-01T00:00:00+07:00');
+
+var PHASE_1_TOTAL = 52.9e12;
+var PHASE_1_DAYS = (PHASE_2_START - PROGRAM_START) / 864e5;
+var PHASE_1_DAILY = PHASE_1_TOTAL / PHASE_1_DAYS;
+
+var PHASE_2_ANNUAL = 335e12;
+var PHASE_2_DAILY = PHASE_2_ANNUAL / 365;
+
+var USD_RATE = 16500;
+var POISONING_VICTIMS = 21254;
+var TARGET_KITCHENS = 35000;
+
+// Session tracking
+var sessionStartCost = getCurrentCost();
+
+// Milestone items for floating bubbles
+var MILESTONES = [
+  {price:3500, label:'Indomie', color:'#f97316'},
+  {price:35000, label:'GoFood', color:'#ef4444'},
+  {price:5067381, label:'UMR Jakarta', color:'#eab308'},
+  {price:28e6, label:'iPhone 17 Pro Max', color:'#22c55e'},
+  {price:30e6, label:'LV Speedy', color:'#14b8a6'},
+  {price:50e6, label:'Chrome Hearts', color:'#06b6d4'},
+  {price:55e6, label:'MacBook Pro M4', color:'#3b82f6'},
+  {price:200e6, label:'Hermes Birkin', color:'#8b5cf6'},
+  {price:220e6, label:'Rolex Submariner', color:'#a855f7'},
+  {price:800e6, label:'Tesla Model Y', color:'#ec4899'},
+  {price:800e6, label:'Harley Davidson', color:'#f43f5e'},
+  {price:1.6e9, label:'Emas 1 kg', color:'#f59e0b'},
+  {price:3e9, label:'Rumah PIK 2', color:'#84cc16'},
+  {price:6.5e9, label:'Porsche 911 GT3', color:'#10b981'},
+  {price:15e9, label:'Lamborghini', color:'#6366f1'},
+  {price:30e9, label:'Apt Manhattan', color:'#d946ef'},
+  {price:50e9, label:'Yacht', color:'#0ea5e9'},
+  {price:100e9, label:'Pesawat Cessna', color:'#f472b6'},
+];
+var milestoneCounts = MILESTONES.map(function(){ return 0; });
+var milestoneLastBubble = MILESTONES.map(function(){ return 0; });
+var activeBubbles = 0;
+var MAX_BUBBLES = 6;
+var MIN_BUBBLE_MS = 333;
+var bubblesEnabled = false;
+var UMR_INDEX = 2; // index of UMR Jakarta in MILESTONES
+var hapticsUnlocked = false;
+function unlockHaptics() {
+  if (hapticsUnlocked) return;
+  hapticsUnlocked = true;
+  if (navigator.vibrate) navigator.vibrate(1);
+  document.removeEventListener('touchstart', unlockHaptics);
+  document.removeEventListener('click', unlockHaptics);
+}
+document.addEventListener('touchstart', unlockHaptics, {once:true});
+document.addEventListener('click', unlockHaptics, {once:true});
+function triggerHaptic() {
+  if (!hapticsUnlocked) return;
+  if (window._haptics) { window._haptics.trigger('heavy'); return; }
+  if (navigator.vibrate) navigator.vibrate(50);
+}
+var NODE_ANNUAL = PHASE_2_ANNUAL / TARGET_KITCHENS;
+var NODE_DAILY = NODE_ANNUAL / 365;
+
+// Daily life comparisons
+var C = {
+  indomie: 3500,
+  padang: 25000,
+  kopi: 65000,
+  bensin: 13300,
+  guru: 24e6,
+  motor: 18.5e6,
+  tiket: 1.2e6,
+  rumah: 150e6,
+  puskesmas: 5e9,
+  sekolah: 8e9,
+};
+// National & global
+var G = {
+  lpdp: 3e9,
+  mrt: 16e12,
+  defense: 245.2e12,
+  ikn: 466e12,
+  nasa: 414e12,
+  health: 187e12,
+  edu: 660e12,
+  pkh: 29e12,
+  jwst: 163e12,
+  gdp: 22000e12,
+};
+
+// === FUNCTIONS ===
+function getCurrentCost() {
+  var now = Date.now(), start = PROGRAM_START.getTime(), p2 = PHASE_2_START.getTime();
+  if (now < start) return 0;
+  if (now >= p2) return PHASE_1_TOTAL + (now - p2) / 864e5 * PHASE_2_DAILY;
+  return (now - start) / 864e5 * PHASE_1_DAILY;
+}
+function getCurrentDailyRate() {
+  return Date.now() >= PHASE_2_START.getTime() ? PHASE_2_DAILY : PHASE_1_DAILY;
+}
+function formatRp(n) {
+  if (n >= 1e12) return 'Rp ' + (n / 1e12).toFixed(n >= 10e12 ? 2 : 3) + ' T';
+  if (n >= 1e9) return 'Rp ' + (n / 1e9).toFixed(1) + ' M';
+  if (n >= 1e6) return 'Rp ' + (n / 1e6).toFixed(1) + ' jt';
+  return 'Rp ' + Math.floor(n).toLocaleString('id-ID');
+}
+function formatRpFull(n) {
+  return 'Rp ' + Math.floor(n).toLocaleString('id-ID');
+}
+function formatBigNumber(n) {
+  if (n >= 1e9) return (n / 1e9).toFixed(1) + ' miliar';
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + ' juta';
+  if (n >= 1e3) return (n / 1e3).toFixed(0) + ' ribu';
+  return Math.floor(n).toLocaleString('id-ID');
+}
+function formatScale(cost, ref) {
+  var r = cost / ref;
+  return r >= 1 ? r.toFixed(1) + '\u00d7' : (r * 100).toFixed(1) + '%';
+}
+function formatUSD(n) {
+  var u = n / USD_RATE;
+  if (u >= 1e9) return '~$' + (u / 1e9).toFixed(2) + ' miliar USD';
+  if (u >= 1e6) return '~$' + (u / 1e6).toFixed(1) + ' juta USD';
+  return '~$' + Math.floor(u).toLocaleString('en-US') + ' USD';
+}
+function getElapsed() {
+  var diff = Date.now() - PROGRAM_START.getTime();
+  if (diff < 0) return {d:0,h:0,m:0,s:0};
+  var s = Math.floor(diff/1000);
+  return {d:Math.floor(s/86400),h:Math.floor(s%86400/3600),m:Math.floor(s%3600/60),s:s%60};
+}
+function getNodeToday() {
+  var now = new Date();
+  var wib = new Date(now.getTime() + (7 * 3600000 + now.getTimezoneOffset() * 60000));
+  var secsSinceMidnight = wib.getHours() * 3600 + wib.getMinutes() * 60 + wib.getSeconds() + wib.getMilliseconds() / 1000;
+  return secsSinceMidnight * (NODE_DAILY / 86400);
+}
+
+// === DOM REFS ===
+function $(id) { return document.getElementById(id); }
+
+// === MILESTONE BUBBLES ===
+function spawnBubble(label, delta, color) {
+  if (activeBubbles >= MAX_BUBBLES) return false;
+  var container = $('bubble-container');
+  var el = document.createElement('div');
+  el.className = 'milestone-bubble';
+  el.textContent = label + ' +' + delta.toLocaleString('id-ID');
+  el.style.borderColor = color;
+  el.style.color = color;
+  var side = Math.random() < 0.5;
+  var x = side ? (5 + Math.random() * 10) : (85 + Math.random() * 10);
+  el.style.left = x + 'vw';
+  container.appendChild(el);
+  activeBubbles++;
+  el.addEventListener('animationend', function() {
+    el.remove();
+    activeBubbles--;
+  });
+  return true;
+}
+
+// === UPDATE LOOP ===
+function update() {
+  var cost = getCurrentCost();
+  var daily = getCurrentDailyRate();
+  var ps = daily/86400, pm = daily/1440, ph = daily/24;
+
+  $('cost-counter').textContent = formatRpFull(cost);
+  $('cost-usd').textContent = formatUSD(cost);
+
+  var e = getElapsed();
+  $('elapsed-time').innerHTML =
+    e.d+'<span> hari </span>'+String(e.h).padStart(2,'0')+'<span> jam </span>'+
+    String(e.m).padStart(2,'0')+'<span> menit </span>'+String(e.s).padStart(2,'0')+'<span> detik</span>';
+
+  $('rate-sec').textContent = formatRp(ps);
+  $('rate-min').textContent = formatRp(pm);
+  $('rate-hour').textContent = formatRp(ph);
+  $('rate-day').textContent = formatRp(daily);
+
+  // Node income
+  $('node-today').textContent = formatRpFull(getNodeToday());
+  $('node-sec').textContent = formatRp(NODE_DAILY / 86400);
+  $('node-min').textContent = formatRp(NODE_DAILY / 1440);
+  $('node-hour').textContent = formatRp(NODE_DAILY / 24);
+  $('node-day').textContent = formatRp(NODE_DAILY);
+  $('node-month').textContent = formatRp(NODE_ANNUAL / 12);
+  $('node-year').textContent = formatRp(NODE_ANNUAL);
+
+  // Daily life — per hari
+  $('comp-indomie').textContent = formatBigNumber(daily / C.indomie);
+  $('comp-padang').textContent = formatBigNumber(daily / C.padang);
+  $('comp-kopi').textContent = formatBigNumber(daily / C.kopi);
+  $('comp-bensin').textContent = formatBigNumber(daily / C.bensin);
+  $('comp-tiket').textContent = formatBigNumber(daily / C.tiket);
+
+  // Daily life — per bulan
+  var monthly = daily * 30;
+  $('comp-guru').textContent = formatBigNumber(monthly / C.guru);
+  $('comp-motor').textContent = formatBigNumber(monthly / C.motor);
+  $('comp-rumah').textContent = formatBigNumber(monthly / C.rumah);
+  $('comp-puskesmas').textContent = formatBigNumber(monthly / C.puskesmas);
+  $('comp-sekolah').textContent = formatBigNumber(monthly / C.sekolah);
+
+  // National & global — per tahun (annual budget)
+  var annual = daily * 365;
+  $('comp-lpdp').textContent = formatBigNumber(annual / G.lpdp);
+  $('comp-mrt').textContent = formatScale(annual, G.mrt);
+  $('comp-defense').textContent = formatScale(annual, G.defense);
+  $('comp-ikn').textContent = formatScale(annual, G.ikn);
+  $('comp-nasa').textContent = formatScale(annual, G.nasa);
+  $('comp-health').textContent = formatScale(annual, G.health);
+  $('comp-edu').textContent = formatScale(annual, G.edu);
+  $('comp-pkh').textContent = formatScale(annual, G.pkh);
+  $('comp-jwst').textContent = formatScale(annual, G.jwst);
+  $('comp-gdp').textContent = formatScale(annual, G.gdp);
+
+  $('cost-per-victim').textContent = formatRp(PHASE_1_TOTAL / POISONING_VICTIMS);
+
+  var now = Date.now();
+  $('phase-badge').textContent = now >= PHASE_2_START.getTime() ? 'FASE 2 \u00b7 2026' : 'FASE 1 \u00b7 2025';
+
+  // Session ticker
+  var sessionSpent = cost - sessionStartCost;
+  $('session-counter').textContent = formatRpFull(sessionSpent);
+
+  // Equivalents row
+  var eqParts = [];
+  for (var i = 0; i < MILESTONES.length; i++) {
+    var ratio = sessionSpent / MILESTONES[i].price;
+    if (ratio >= 0.1) {
+      eqParts.push('<span>' + ratio.toFixed(ratio >= 10 ? 0 : 1) + 'x ' + MILESTONES[i].label + '</span>');
+    }
+  }
+  $('session-equivalents').innerHTML = eqParts.join('');
+
+  // Milestone bubble checks
+  var nowMs = performance.now();
+  for (var j = 0; j < MILESTONES.length; j++) {
+    var m = MILESTONES[j];
+    var newCount = Math.floor(sessionSpent / m.price);
+    if (newCount > milestoneCounts[j]) {
+      if (bubblesEnabled && nowMs - milestoneLastBubble[j] >= MIN_BUBBLE_MS) {
+        var delta = newCount - milestoneCounts[j];
+        if (spawnBubble(m.label, delta, m.color)) {
+          milestoneLastBubble[j] = nowMs;
+          if (j === UMR_INDEX) triggerHaptic();
+        }
+      }
+      milestoneCounts[j] = newCount;
+    }
+  }
+
+  requestAnimationFrame(update);
+}
+requestAnimationFrame(update);
+
+// === INFO POPOVER ===
+function toggleInfoPopover(e) {
+  e.stopPropagation();
+  var pop = $('info-popover');
+  pop.classList.toggle('show');
+}
+document.addEventListener('click', function(e) {
+  var pop = $('info-popover');
+  if (pop && !e.target.closest('.info-trigger')) pop.classList.remove('show');
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    var pop = $('info-popover');
+    if (pop) pop.classList.remove('show');
+  }
+});
+
+// === TOGGLE BUBBLES ===
+function toggleBubbles() {
+  bubblesEnabled = !bubblesEnabled;
+  var btn = $('bubble-toggle');
+  btn.classList.toggle('active', bubblesEnabled);
+  $('bubble-toggle-text').textContent = bubblesEnabled ? 'Bubbles ON' : 'Bubbles OFF';
+  if (!bubblesEnabled) {
+    var container = $('bubble-container');
+    while (container.firstChild) container.firstChild.remove();
+    activeBubbles = 0;
+  }
+}
+
+// === TOGGLE COMPARISONS ===
+function toggleComparisons() {
+  var sec = $('comp-section');
+  var expanded = sec.classList.toggle('expanded');
+  $('show-more-text').textContent = expanded ? 'Sembunyikan' : 'Lihat Semua Perbandingan';
+}
+
+// === SHARE ===
+function copyLink() {
+  navigator.clipboard.writeText(window.location.href).then(function() {
+    var fb = $('copy-feedback');
+    fb.textContent = 'Link disalin!'; fb.style.opacity = '1';
+    setTimeout(function() { fb.style.opacity = '0'; }, 2000);
+  });
+}
+function shareTwitter() {
+  var cost = formatRpFull(getCurrentCost());
+  window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(
+    'Anggaran program MBG Indonesia saat ini: ' + cost + '\n\nLihat visualisasi langsung: ' + window.location.href
+  ), '_blank');
+}
+setInterval(function() { document.title = formatRpFull(getCurrentCost()) + ' \u2014 Ticker MBG'; }, 5000);
+
+// === STORY PREVIEW MODAL ===
+var storyPreviewInterval = null;
+
+function getStoryConfig() {
+  return {
+    burnRate: document.getElementById('toggle-burnRate').checked,
+    nodeIncome: document.getElementById('toggle-nodeIncome').checked,
+    comparisons: document.getElementById('toggle-comparisons').checked,
+    foodSafety: document.getElementById('toggle-foodSafety').checked
+  };
+}
+
+function renderStoryCanvas(sections) {
+  var W = 1080, H = 1920;
+  var c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  var ctx = c.getContext('2d');
+
+  // Background
+  ctx.fillStyle = '#09090b'; ctx.fillRect(0, 0, W, H);
+  var grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, 'rgba(153,27,27,0.12)');
+  grad.addColorStop(0.3, 'rgba(9,9,11,0)');
+  grad.addColorStop(0.7, 'rgba(9,9,11,0)');
+  grad.addColorStop(1, 'rgba(153,27,27,0.08)');
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#e53e3e'; ctx.fillRect(0, 0, W, 6);
+
+  function ct(text, y, font, color) {
+    ctx.font = font; ctx.fillStyle = color;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(text, W / 2, y);
+  }
+  function rr(x, y, w, h, r) {
+    ctx.beginPath(); ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+    ctx.quadraticCurveTo(x+w,y,x+w,y+r); ctx.lineTo(x+w,y+h-r);
+    ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h);
+    ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r);
+    ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+  }
+  function drawSep(y) {
+    var g = ctx.createLinearGradient(140,y,W-140,y);
+    g.addColorStop(0,'rgba(38,38,38,0)');g.addColorStop(0.3,'#262626');
+    g.addColorStop(0.7,'#262626');g.addColorStop(1,'rgba(38,38,38,0)');
+    ctx.strokeStyle=g;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(140,y);ctx.lineTo(W-140,y);ctx.stroke();
+  }
+
+  // LIVE badge
+  ctx.fillStyle='#1c1c1c';rr(W/2-55,60,110,36,18);ctx.fill();
+  ctx.strokeStyle='#991b1b';ctx.lineWidth=1.5;rr(W/2-55,60,110,36,18);ctx.stroke();
+  ctx.fillStyle='#e53e3e';ctx.beginPath();ctx.arc(W/2-25,78,5,0,Math.PI*2);ctx.fill();
+  ctx.font='bold 16px monospace';ctx.fillStyle='#e53e3e';ctx.textAlign='center';ctx.fillText('LIVE',W/2+8,82);
+
+  // Title
+  ct('TICKER BIAYA', 160, 'bold 42px monospace', '#e5e5e5');
+  ct('MBG', 220, 'bold 64px monospace', '#f56565');
+  drawSep(280);
+
+  // Main counter (always)
+  ct('TOTAL ANGGARAN TERPAKAI', 330, '600 22px sans-serif', '#737373');
+  var cost = getCurrentCost();
+  var costStr = formatRpFull(cost);
+  var costFont = costStr.length > 25 ? 'bold 42px monospace' : 'bold 52px monospace';
+  ctx.shadowColor='rgba(245,101,101,0.4)';ctx.shadowBlur=60;
+  ct(costStr, 420, costFont, '#f56565');
+  ctx.shadowBlur=0;
+  ct(formatUSD(cost), 480, '28px monospace', '#525252');
+
+  var e = getElapsed();
+  ct(e.d+' hari '+String(e.h).padStart(2,'0')+' jam '+String(e.m).padStart(2,'0')+' menit', 550, '26px monospace', '#737373');
+
+  // Calculate dynamic content height for vertical centering
+  var dynH = 0;
+  if (sections.burnRate) dynH += 40 + 30 + 2*(100+20);
+  if (sections.nodeIncome) dynH += 40 + 45 + 35 + 40;
+  if (sections.comparisons) dynH += 40 + 30 + 2*(130+20);
+  if (sections.foodSafety) dynH += 10 + 130;
+
+  var headerEnd = 590, footerTop = H - 140;
+  var availH = footerTop - headerEnd;
+  var curY = dynH > 0 ? headerEnd + Math.max(0, (availH - dynH) / 2) : headerEnd;
+
+  // Burn rate (optional, default OFF)
+  if (sections.burnRate) {
+    drawSep(curY); curY += 40;
+    ct('LAJU PENGELUARAN', curY, '600 18px sans-serif', '#737373');
+    curY += 30;
+    var daily = getCurrentDailyRate();
+    var rates = [
+      {label:'Per Detik', value:formatRp(daily/86400)},
+      {label:'Per Menit', value:formatRp(daily/1440)},
+      {label:'Per Jam', value:formatRp(daily/24)},
+      {label:'Per Hari', value:formatRp(daily)},
+    ];
+    var rgap=20, rcW=(W-120-rgap)/2, rcH=100;
+    rates.forEach(function(rate,i){
+      var col=i%2,row=Math.floor(i/2);
+      var x=60+col*(rcW+rgap),y=curY+row*(rcH+rgap);
+      ctx.fillStyle='#141414';rr(x,y,rcW,rcH,8);ctx.fill();
+      ctx.strokeStyle='#262626';ctx.lineWidth=1;rr(x,y,rcW,rcH,8);ctx.stroke();
+      ctx.font='14px sans-serif';ctx.fillStyle='#737373';ctx.textAlign='center';ctx.fillText(rate.label,x+rcW/2,y+30);
+      ctx.font='bold 28px monospace';ctx.fillStyle='#e5e5e5';ctx.fillText(rate.value,x+rcW/2,y+70);
+    });
+    curY += 2*(rcH+rgap);
+  }
+
+  // Node income (optional, default ON)
+  if (sections.nodeIncome) {
+    drawSep(curY); curY += 40;
+    ct('PENDAPATAN PER DAPUR HARI INI', curY, '600 18px sans-serif', '#737373');
+    curY += 45;
+    ctx.shadowColor='rgba(52,211,153,0.25)';ctx.shadowBlur=40;
+    ct(formatRpFull(getNodeToday()), curY, 'bold 38px monospace', '#34d399');
+    ctx.shadowBlur=0;
+    curY += 35;
+    ct('dari '+TARGET_KITCHENS.toLocaleString('id-ID')+' target dapur', curY, '18px sans-serif', '#525252');
+    curY += 40;
+  }
+
+  // Comparisons (optional, default ON)
+  if (sections.comparisons) {
+    drawSep(curY); curY += 40;
+    ct('PERBANDINGAN', curY, '600 20px sans-serif', '#737373');
+    curY += 30;
+    var comps = [
+      {icon:'\uD83C\uDF5C', value:formatBigNumber(cost/C.indomie), label:'bungkus Indomie', color:'#f56565'},
+      {icon:'\uD83C\uDF5B', value:formatBigNumber(cost/C.padang), label:'porsi nasi padang ayam', color:'#f56565'},
+      {icon:'\uD83D\uDE87', value:formatScale(cost,G.mrt), label:'proyek MRT Jakarta', color:'#22d3ee'},
+      {icon:'\uD83D\uDE80', value:formatScale(cost,G.nasa), label:'anggaran NASA setahun', color:'#22d3ee'},
+    ];
+    var cgap=20, ccW=(W-120-cgap)/2, ccH=130;
+    comps.forEach(function(comp,i){
+      var col=i%2,row=Math.floor(i/2);
+      var x=60+col*(ccW+cgap),y=curY+row*(ccH+cgap);
+      ctx.fillStyle='#141414';rr(x,y,ccW,ccH,8);ctx.fill();
+      ctx.strokeStyle='#262626';ctx.lineWidth=1;rr(x,y,ccW,ccH,8);ctx.stroke();
+      ctx.font='36px serif';ctx.textAlign='center';ctx.fillText(comp.icon,x+ccW/2,y+38);
+      ctx.font='bold 28px monospace';ctx.fillStyle=comp.color;ctx.fillText(comp.value,x+ccW/2,y+78);
+      ctx.font='16px sans-serif';ctx.fillStyle='#737373';ctx.fillText(comp.label,x+ccW/2,y+108);
+    });
+    curY += 2*(ccH+cgap);
+  }
+
+  // Food safety (optional, default ON)
+  if (sections.foodSafety) {
+    curY += 10;
+    ctx.fillStyle='#141414';rr(60,curY,W-120,100,10);ctx.fill();
+    ctx.strokeStyle='rgba(229,62,62,0.3)';ctx.lineWidth=1;rr(60,curY,W-120,100,10);ctx.stroke();
+    ctx.textAlign='center';
+    ctx.font='bold 36px monospace';ctx.fillStyle='#f56565';ctx.fillText(POISONING_VICTIMS.toLocaleString('id-ID')+'+',W/2,curY+42);
+    ctx.font='18px sans-serif';ctx.fillStyle='#fca5a5';
+    ctx.fillText('terdampak insiden keamanan pangan (s/d Jan 2026)',W/2,curY+76);
+    curY += 130;
+  }
+
+  // Footer (gradient, anchored at bottom)
+  var footGrad = ctx.createLinearGradient(0, H-120, 0, H);
+  footGrad.addColorStop(0,'#18181b');footGrad.addColorStop(1,'#111');
+  ctx.fillStyle=footGrad;ctx.fillRect(0,H-120,W,120);
+  ctx.fillStyle='#e53e3e';ctx.fillRect(0,H-120,W,2);
+  ct('biayambg.vercel.app', H-72, 'bold 28px monospace', '#e5e5e5');
+  var now=new Date();
+  ct(now.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}),H-36,'18px sans-serif','#737373');
+
+  return c;
+}
+
+function openStoryModal() {
+  document.body.style.overflow = 'hidden';
+  document.getElementById('story-modal').style.display = 'flex';
+  document.querySelector('.fab-story').style.display = 'none';
+  updateStoryPreview();
+  storyPreviewInterval = setInterval(updateStoryPreview, 2000);
+  document.addEventListener('keydown', storyModalEscHandler);
+}
+
+function updateStoryPreview() {
+  var config = getStoryConfig();
+  var srcCanvas = renderStoryCanvas(config);
+  var preview = document.getElementById('story-preview-canvas');
+  preview.width = srcCanvas.width;
+  preview.height = srcCanvas.height;
+  preview.getContext('2d').drawImage(srcCanvas, 0, 0);
+}
+
+function downloadStory() {
+  var config = getStoryConfig();
+  var canvas = renderStoryCanvas(config);
+  canvas.toBlob(function(blob) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = 'biaya-mbg-' + Date.now() + '.png';
+    a.click();
+    URL.revokeObjectURL(url);
+    showStoryToast('Gambar tersimpan!');
+  }, 'image/png');
+}
+
+function shareStory() {
+  var config = getStoryConfig();
+  var canvas = renderStoryCanvas(config);
+  canvas.toBlob(function(blob) {
+    if (navigator.share && navigator.canShare) {
+      var file = new File([blob], 'biaya-mbg-' + Date.now() + '.png', {type: 'image/png'});
+      if (navigator.canShare({files: [file]})) {
+        navigator.share({files:[file], title:'Ticker Biaya MBG', text:'Anggaran program MBG Indonesia: '+formatRpFull(getCurrentCost())}).catch(function(){});
+        return;
+      }
+    }
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = 'biaya-mbg-' + Date.now() + '.png';
+    a.click();
+    URL.revokeObjectURL(url);
+    showStoryToast('Gambar tersimpan!');
+  }, 'image/png');
+}
+
+function closeStoryModal() {
+  document.body.style.overflow = '';
+  document.getElementById('story-modal').style.display = 'none';
+  document.querySelector('.fab-story').style.display = '';
+  if (storyPreviewInterval) { clearInterval(storyPreviewInterval); storyPreviewInterval = null; }
+  document.removeEventListener('keydown', storyModalEscHandler);
+}
+
+function storyModalEscHandler(e) {
+  if (e.key === 'Escape') closeStoryModal();
+}
+
+function showStoryToast(msg) {
+  var toast = document.getElementById('story-toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(function() { toast.classList.remove('show'); }, 2500);
+}
+</script>
+
+
+
+</body></html>
