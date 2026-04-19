@@ -8,25 +8,39 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Under Attack Mode Check -->
+<!-- Under Attack Mode Check -->
 <script>
 (function() {
-    // Skip kalau sudah verified
-    if (document.cookie.includes('__cf_verify_mbg')) return;
+    console.log('UA Check: Starting...');
     
-    // Cek status ke backend
-    fetch('./check-status.php')
-        .then(r => r.json())
+    // Skip kalau sudah verified
+    if (document.cookie.includes('__cf_verify_mbg')) {
+        console.log('UA Check: Already verified, skip');
+        return;
+    }
+    
+    console.log('UA Check: Fetching status...');
+    
+    fetch('./check-status.php?' + Date.now())
+        .then(r => {
+            console.log('UA Check: Response status', r.status);
+            return r.json();
+        })
         .then(data => {
+            console.log('UA Check: Data', data);
             if (data.under_attack === true) {
+                console.log('UA Check: Redirecting to under-attack');
                 window.location.replace('./under-attack.html');
+            } else {
+                console.log('UA Check: Normal mode, stay here');
             }
         })
-        .catch(() => {
-            // Silent fail - biarkan user masuk kalau error
+        .catch(err => {
+            console.error('UA Check: Error', err);
         });
 })();
 </script>
+
 <script type="module">
 import { WebHaptics } from 'https://unpkg.com/web-haptics@0.0.6/dist/index.js';
 window._haptics = new WebHaptics();
