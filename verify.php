@@ -1,17 +1,16 @@
 <?php
 header('Content-Type: text/plain');
+header('Access-Control-Allow-Origin: *');
 
-// ===== KONFIGURASI =====
-$secretKey = "0x4AAAAAACmUJApqFJoi7W6SxRXfjZ6wnvA"; // GANTI dengan secret key asli dari Cloudflare
+// ✅ SECRET KEY YANG BENAR
+$secretKey = "0x4AAAAAACmUJApqFJoi7W6SxRXfjZ6wnvA";
 
-// Cek method
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo "FAIL";
     exit;
 }
 
-// Ambil token
 $token = $_POST['token'] ?? '';
 if (empty($token)) {
     echo "FAIL";
@@ -20,7 +19,6 @@ if (empty($token)) {
 
 $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 
-// Verifikasi ke Cloudflare
 $url = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
 $data = [
@@ -48,10 +46,8 @@ if ($httpCode !== 200 || $response === false) {
 
 $result = json_decode($response, true);
 
-// Cek hasil
 if (isset($result['success']) && $result['success'] === true) {
-    // Set session/cookie untuk mark verified
-    setcookie('__cf_verify', hash('sha256', $ip . $secretKey), time() + 3600, '/');
+    setcookie('__cf_verify_mbg', hash('sha256', $ip . $secretKey . time()), time() + 3600, '/');
     echo "OK";
 } else {
     echo "FAIL";
