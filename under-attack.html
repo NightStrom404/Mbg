@@ -381,7 +381,7 @@
 
             <div class="turnstile-box hidden" id="turnstileBox">
                 <div class="cf-turnstile" 
-                     data-sitekey="0x4AAAAAAC_ynUzGMrHG8afP"
+                     data-sitekey="0x4AAAAAACmUJFfZBxDy_Gfj"
                      data-callback="onTurnstileSuccess"
                      data-error-callback="onTurnstileError"
                      data-theme="dark"
@@ -423,7 +423,7 @@
     </div>
 
     <script>
-        const VERIFY_ENDPOINT = './verify.php';
+        const VERIFY_ENDPOINT = '/verify.php';
         let verified = false;
 
         function generateRayId() {
@@ -473,9 +473,8 @@
                     body: formData
                 });
                 
-                const result = await response.text();
-                
-                if (result.trim() === 'OK') {
+                const result = await response.json();
+                if (result.success === true) {
                     verified = true;
                     showSuccess();
                 } else {
@@ -492,6 +491,7 @@
         }
 
         function showSuccess() {
+            document.cookie = "__cf_verify_mbg=true; path=/; max-age=1800; SameSite=Lax; Secure";
             document.getElementById('progressBox').classList.add('hidden');
             document.querySelector('.shield').innerHTML = '✓';
             document.querySelector('.shield').style.background = 'var(--green)';
@@ -507,7 +507,7 @@
             statusMsg.textContent = '✓ Security check passed! Welcome back.';
             
             setTimeout(() => {
-                window.location.href = './index.html';
+                window.location.href = '/';
             }, 2000);
         }
 
