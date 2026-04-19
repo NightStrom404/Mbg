@@ -2,7 +2,7 @@
 header('Content-Type: text/plain');
 header('Access-Control-Allow-Origin: *');
 
-$secretKey = "0x4AAAAAACmUJApqFJoi7W6SxRXfjZ6wnvA";
+$secretKey = "0x4AAAAAAC_ync8iinI3Oxflz08KHg0qJUI";
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
