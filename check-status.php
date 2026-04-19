@@ -1,21 +1,12 @@
 <?php
-// File ini untuk cek apakah Under Attack Mode ON atau OFF
-// Bisa diatur manual atau via database
-
 header('Content-Type: application/json');
+header('Cache-Control: no-store, no-cache, must-revalidate');
 
-// ===== KONFIGURASI MODE =====
-// Ganti ini ke true untuk aktifkan Under Attack Mode
-$underAttackMode = false; // <-- GANTI INI UNTUK ON/OFF
+$underAttackMode = file_exists(__DIR__ . '/.under-attack');
 
-// Atau baca dari file/database:
-// $underAttackMode = file_exists(__DIR__ . '/.under-attack');
-
-$response = [
+echo json_encode([
     'under_attack' => $underAttackMode,
     'timestamp' => time(),
-    'message' => $underAttackMode ? 'Under Attack Mode Active' : 'Normal Operation'
-];
-
-echo json_encode($response);
+    'checked_at' => date('Y-m-d H:i:s')
+]);
 ?>
