@@ -8,35 +8,20 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<!-- Under Attack Mode Check -->
 <script>
 (function() {
-    console.log('UA Check: Starting...');
-    
-    // Skip kalau sudah verified
-    if (document.cookie.includes('__cf_verify_mbg')) {
-        console.log('UA Check: Already verified, skip');
-        return;
-    }
-    
-    console.log('UA Check: Fetching status...');
-    
-    fetch('./check-status.php?' + Date.now())
-        .then(r => {
-            console.log('UA Check: Response status', r.status);
-            return r.json();
-        })
+    if (document.cookie.includes('__cf_verify_mbg')) return;
+
+    fetch('/check-status.php')
+        .then(r => r.json())
         .then(data => {
-            console.log('UA Check: Data', data);
             if (data.under_attack === true) {
-                console.log('UA Check: Redirecting to under-attack');
-                window.location.replace('./under-attack.html');
-            } else {
-                console.log('UA Check: Normal mode, stay here');
+                window.location.replace('/under-attack.html');
             }
         })
-        .catch(err => {
-            console.error('UA Check: Error', err);
+        .catch(() => {
+            // Kalau error, tetap arahkan ke verifikasi (lebih aman)
+            window.location.replace('/under-attack.html');
         });
 })();
 </script>
