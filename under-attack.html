@@ -3,27 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Security Check | DDoS Protection</title>
+    <title>Security Check | Ticker Biaya MBG</title>
     
-    <!-- Cloudflare Turnstile API -->
+    <!-- Cloudflare Turnstile -->
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg: #09090b;
+            --card: #141414;
+            --card-elevated: #18181b;
+            --border: #262626;
+            --text: #e5e5e5;
+            --muted: #737373;
+            --dim: #525252;
+            --red: #e53e3e;
+            --red-glow: #f56565;
+            --red-dark: #991b1b;
+            --green: #34d399;
         }
 
         html, body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0a0a;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
             min-height: 100vh;
-            color: #fff;
+            color: var(--text);
             overflow-x: hidden;
         }
 
-        /* Container */
+        .mono {
+            font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+            font-feature-settings: 'tnum' 1;
+        }
+
         .container {
             width: 100%;
             min-height: 100vh;
@@ -36,7 +50,6 @@
             z-index: 10;
         }
 
-        /* Background Animation */
         .bg-animation {
             position: fixed;
             top: 0;
@@ -51,20 +64,20 @@
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 200vmax;
-            height: 200vmax;
+            width: 150vmax;
+            height: 150vmax;
             transform: translate(-50%, -50%);
             background: conic-gradient(
                 from 0deg,
                 transparent 0deg,
-                rgba(231, 76, 60, 0.1) 60deg,
+                rgba(229, 62, 62, 0.1) 60deg,
                 transparent 120deg,
-                rgba(243, 156, 18, 0.1) 180deg,
+                rgba(245, 101, 101, 0.1) 180deg,
                 transparent 240deg,
-                rgba(231, 76, 60, 0.1) 300deg,
+                rgba(229, 62, 62, 0.1) 300deg,
                 transparent 360deg
             );
-            animation: rotate 30s linear infinite;
+            animation: rotate 25s linear infinite;
         }
 
         @keyframes rotate {
@@ -72,12 +85,27 @@
             to { transform: translate(-50%, -50%) rotate(360deg); }
         }
 
-        /* Shield/Logo */
+        .alert-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--card);
+            border-top: 2px solid var(--red);
+            padding: 10px 16px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--muted);
+            letter-spacing: 0.3px;
+            z-index: 100;
+        }
+
         .shield-wrapper {
             position: relative;
             width: 120px;
             height: 120px;
             margin-bottom: 30px;
+            margin-top: 40px;
         }
 
         .pulse-ring {
@@ -87,7 +115,7 @@
             transform: translate(-50%, -50%);
             width: 100%;
             height: 100%;
-            border: 3px solid #e74c3c;
+            border: 3px solid var(--red);
             border-radius: 50%;
             animation: pulse 2s ease-out infinite;
         }
@@ -107,44 +135,74 @@
             transform: translate(-50%, -50%);
             width: 80px;
             height: 80px;
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            background: linear-gradient(135deg, var(--red-glow) 0%, var(--red) 100%);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 40px;
-            box-shadow: 0 0 40px rgba(231, 76, 60, 0.6);
+            box-shadow: 0 0 40px rgba(229, 62, 62, 0.5);
             z-index: 10;
         }
 
-        .shield img {
-            width: 45px;
-            height: 45px;
-            object-fit: contain;
-        }
-
-        /* Content */
         .content {
             width: 100%;
             max-width: 400px;
             text-align: center;
         }
 
+        .header-label {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+        }
+
         h1 {
-            font-size: 24px;
-            font-weight: 700;
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--red);
+            letter-spacing: -1px;
             margin-bottom: 12px;
-            letter-spacing: 0.5px;
         }
 
         .subtitle {
-            color: #888;
+            color: var(--muted);
             font-size: 14px;
             line-height: 1.6;
             margin-bottom: 25px;
         }
 
-        /* Turnstile Container */
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #1c1c1c;
+            border: 1px solid var(--red-dark);
+            border-radius: 20px;
+            padding: 4px 14px;
+            margin-bottom: 25px;
+            font-size: 12px;
+            color: var(--red);
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--red);
+            animation: blink 1s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
         .turnstile-box {
             width: 100%;
             display: flex;
@@ -153,12 +211,10 @@
             min-height: 65px;
         }
 
-        /* Custom Turnstile styling override */
         .cf-turnstile {
             margin: 0 auto;
         }
 
-        /* Loading State */
         .loading-state {
             display: flex;
             flex-direction: column;
@@ -170,7 +226,7 @@
             width: 40px;
             height: 40px;
             border: 3px solid rgba(255,255,255,0.1);
-            border-top-color: #ee5a24;
+            border-top-color: var(--red);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -180,11 +236,10 @@
         }
 
         .loading-text {
-            color: #888;
+            color: var(--muted);
             font-size: 13px;
         }
 
-        /* Progress Bar */
         .progress-container {
             width: 100%;
             height: 4px;
@@ -197,7 +252,7 @@
         .progress-bar {
             height: 100%;
             width: 0%;
-            background: linear-gradient(90deg, #ff6b6b, #ee5a24);
+            background: linear-gradient(90deg, var(--red-glow), var(--red));
             transition: width 0.3s ease;
         }
 
@@ -211,11 +266,10 @@
             100% { width: 100%; }
         }
 
-        /* Info Box */
         .info-box {
             width: 100%;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: var(--card);
+            border: 1px solid var(--border);
             border-radius: 10px;
             padding: 15px;
             margin: 20px 0;
@@ -228,16 +282,15 @@
             justify-content: space-between;
             align-items: center;
             padding: 6px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid var(--border);
         }
 
         .info-row:last-child { border-bottom: none; }
 
-        .label { color: #666; }
-        .value { color: #0f0; font-weight: 600; }
+        .label { color: var(--muted); }
+        .value { color: var(--green); font-weight: 600; }
         .value.pending { color: #ffaa00; }
 
-        /* Success/Error States */
         .status-message {
             display: none;
             padding: 15px;
@@ -248,23 +301,22 @@
 
         .status-message.success {
             display: block;
-            background: rgba(39, 174, 96, 0.1);
-            border: 1px solid #27ae60;
-            color: #27ae60;
+            background: rgba(52, 211, 153, 0.1);
+            border: 1px solid var(--green);
+            color: var(--green);
         }
 
         .status-message.error {
             display: block;
-            background: rgba(231, 76, 60, 0.1);
-            border: 1px solid #e74c3c;
-            color: #e74c3c;
+            background: rgba(229, 62, 62, 0.1);
+            border: 1px solid var(--red);
+            color: var(--red);
         }
 
-        /* Footer */
         .footer {
             margin-top: 30px;
             padding-top: 20px;
-            border-top: 1px solid rgba(255,255,255,0.1);
+            border-top: 1px solid var(--border);
             text-align: center;
         }
 
@@ -274,95 +326,73 @@
             justify-content: center;
             gap: 8px;
             font-size: 12px;
-            color: #555;
+            color: var(--dim);
             margin-bottom: 8px;
         }
 
         .ray-id {
             font-family: monospace;
             font-size: 10px;
-            color: #444;
+            color: var(--dim);
         }
 
-        /* Mobile Optimizations */
         @media (max-width: 480px) {
             .container { padding: 15px; }
-            
-            .shield-wrapper {
-                width: 100px;
-                height: 100px;
-                margin-bottom: 25px;
-            }
-
-            .shield {
-                width: 65px;
-                height: 65px;
-                font-size: 32px;
-            }
-
-            .shield img {
-                width: 38px;
-                height: 38px;
-            }
-
-            h1 { font-size: 20px; }
+            .shield-wrapper { width: 100px; height: 100px; margin-bottom: 25px; }
+            .shield { width: 65px; height: 65px; font-size: 32px; }
+            h1 { font-size: 24px; }
             .subtitle { font-size: 13px; margin-bottom: 20px; }
-            
-            .info-box {
-                padding: 12px;
-                font-size: 10px;
-            }
-
+            .info-box { padding: 12px; font-size: 10px; }
             .info-row { padding: 5px 0; }
         }
 
         @media (max-width: 320px) {
-            h1 { font-size: 18px; }
+            h1 { font-size: 20px; }
             .shield-wrapper { width: 90px; height: 90px; }
             .shield { width: 55px; height: 55px; }
         }
 
-        /* Hidden states */
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
-    <!-- Background -->
+    <div class="alert-bar mono">
+        DDoS Protection Active — Please verify to continue
+    </div>
+
     <div class="bg-animation">
         <div class="rays"></div>
     </div>
 
     <div class="container">
-        <!-- Shield -->
         <div class="shield-wrapper">
             <div class="pulse-ring"></div>
             <div class="pulse-ring"></div>
             <div class="pulse-ring"></div>
-            <div class="shield" id="shieldIcon">
-                <!-- Ganti dengan logo kamu -->
-                <img src="https://cdn-icons-png.flaticon.com/512/2091/2091665.png" 
-                     alt="Security" 
-                     onerror="this.style.display='none'; this.parentElement.innerHTML='🛡️'">
-            </div>
+            <div class="shield">🛡️</div>
         </div>
 
-        <!-- Content -->
         <div class="content">
-            <h1 id="mainTitle">Security Check</h1>
-            <p class="subtitle" id="mainSubtitle">
-                Please complete the verification below to continue
+            <div class="header-label">Security Check</div>
+            <h1>Under Attack Mode</h1>
+            
+            <div class="live-badge">
+                <span class="live-dot"></span> PROTECTION ACTIVE
+            </div>
+
+            <p class="subtitle">
+                Our systems have detected unusual traffic patterns. Please complete the verification below to access Ticker Biaya MBG.
             </p>
 
-            <!-- Loading State -->
             <div class="loading-state" id="loadingState">
                 <div class="spinner"></div>
                 <span class="loading-text">Initializing security check...</span>
             </div>
 
-            <!-- Turnstile Widget -->
             <div class="turnstile-box hidden" id="turnstileBox">
+                <!-- ✅ SITE KEY YANG BENAR -->
                 <div class="cf-turnstile" 
-                     data-sitekey="0x4AAAAAACmUJApqFJoi7W6S" 
+                     data-sitekey="0x4AAAAAACmUJFfZBxDy_Gfj"
                      data-callback="onTurnstileSuccess"
                      data-error-callback="onTurnstileError"
                      data-theme="dark"
@@ -370,15 +400,12 @@
                 </div>
             </div>
 
-            <!-- Progress -->
             <div class="progress-container hidden" id="progressBox">
                 <div class="progress-bar active" id="progressBar"></div>
             </div>
 
-            <!-- Status Messages -->
             <div class="status-message" id="statusMsg"></div>
 
-            <!-- Info -->
             <div class="info-box" id="infoBox">
                 <div class="info-row">
                     <span class="label">Status:</span>
@@ -390,36 +417,32 @@
                 </div>
                 <div class="info-row">
                     <span class="label">Ray ID:</span>
-                    <span class="value" id="rayIdText">-</span>
+                    <span class="value mono" id="rayIdText">-</span>
                 </div>
             </div>
 
-            <!-- Footer -->
             <div class="footer">
                 <div class="cf-branding">
                     <span>🛡️</span>
                     <span>DDoS Protection by Cloudflare</span>
                 </div>
                 <div class="ray-id" id="rayIdFooter">
-                    Ray ID: <span id="rayIdValue">-</span>
+                    Ray ID: <span class="mono" id="rayIdValue">-</span>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // ===== CONFIGURATION =====
-        const VERIFY_ENDPOINT = 'verify.php'; // Ganti dengan path PHP verify kamu
+        const VERIFY_ENDPOINT = './verify.php';
         let verified = false;
 
-        // Generate Ray ID
         function generateRayId() {
             return Array.from({length: 16}, () => 
                 Math.floor(Math.random() * 16).toString(16)
             ).join('');
         }
 
-        // Get IP
         async function getIP() {
             try {
                 const res = await fetch('https://api.ipify.org?format=json');
@@ -430,7 +453,6 @@
             }
         }
 
-        // Initialize
         async function init() {
             const rayId = generateRayId();
             const ip = await getIP();
@@ -439,7 +461,6 @@
             document.getElementById('rayIdValue').textContent = rayId;
             document.getElementById('ipText').textContent = ip;
 
-            // Simulate loading then show Turnstile
             setTimeout(() => {
                 document.getElementById('loadingState').classList.add('hidden');
                 document.getElementById('turnstileBox').classList.remove('hidden');
@@ -447,7 +468,6 @@
             }, 1500);
         }
 
-        // Turnstile Success Callback
         async function onTurnstileSuccess(token) {
             if (verified) return;
             
@@ -456,7 +476,6 @@
             document.getElementById('statusText').textContent = 'Verifying...';
             
             try {
-                // Send to PHP backend
                 const formData = new FormData();
                 formData.append('token', token);
                 
@@ -479,51 +498,47 @@
             }
         }
 
-        // Turnstile Error Callback
         function onTurnstileError() {
             showError('Challenge error. Please refresh the page.');
         }
 
         function showSuccess() {
             document.getElementById('progressBox').classList.add('hidden');
-            document.getElementById('shieldIcon').innerHTML = '✓';
-            document.getElementById('shieldIcon').style.background = '#27ae60';
-            document.getElementById('shieldIcon').style.boxShadow = '0 0 40px rgba(39, 174, 96, 0.6)';
+            document.querySelector('.shield').innerHTML = '✓';
+            document.querySelector('.shield').style.background = 'var(--green)';
+            document.querySelector('.shield').style.boxShadow = '0 0 40px rgba(52, 211, 153, 0.5)';
             
-            document.getElementById('mainTitle').textContent = 'Verification Complete';
-            document.getElementById('mainSubtitle').textContent = 'Redirecting you to the website...';
+            document.querySelector('h1').textContent = 'Verification Complete';
+            document.querySelector('.subtitle').textContent = 'Redirecting to Ticker Biaya MBG...';
             document.getElementById('statusText').textContent = 'Verified ✓';
-            document.getElementById('statusText').style.color = '#27ae60';
+            document.getElementById('statusText').style.color = 'var(--green)';
             
             const statusMsg = document.getElementById('statusMsg');
             statusMsg.className = 'status-message success';
-            statusMsg.textContent = '✓ Security check passed!';
+            statusMsg.textContent = '✓ Security check passed! Welcome back.';
             
-            // Redirect after 2 seconds
             setTimeout(() => {
-                window.location.href = '/'; // Ganti dengan URL tujuan
+                window.location.href = './index.html';
             }, 2000);
         }
 
         function showError(message) {
             document.getElementById('progressBox').classList.add('hidden');
-            document.getElementById('shieldIcon').innerHTML = '✗';
-            document.getElementById('shieldIcon').style.background = '#e74c3c';
+            document.querySelector('.shield').innerHTML = '✗';
+            document.querySelector('.shield').style.background = '#ff4444';
             
             document.getElementById('statusText').textContent = 'Failed';
-            document.getElementById('statusText').style.color = '#e74c3c';
+            document.getElementById('statusText').style.color = '#ff4444';
             
             const statusMsg = document.getElementById('statusMsg');
             statusMsg.className = 'status-message error';
             statusMsg.textContent = '✗ ' + message;
             
-            // Show retry button after 3 seconds
             setTimeout(() => {
                 location.reload();
             }, 3000);
         }
 
-        // Start
         window.addEventListener('load', init);
     </script>
 </body>
