@@ -14,7 +14,6 @@
         :root {
             --bg: #09090b;
             --card: #141414;
-            --card-elevated: #18181b;
             --border: #262626;
             --text: #e5e5e5;
             --muted: #737373;
@@ -31,11 +30,6 @@
             min-height: 100vh;
             color: var(--text);
             overflow-x: hidden;
-        }
-
-        .mono {
-            font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
-            font-feature-settings: 'tnum' 1;
         }
 
         .container {
@@ -211,10 +205,6 @@
             min-height: 65px;
         }
 
-        .cf-turnstile {
-            margin: 0 auto;
-        }
-
         .loading-state {
             display: flex;
             flex-direction: column;
@@ -356,7 +346,7 @@
     </style>
 </head>
 <body>
-    <div class="alert-bar mono">
+    <div class="alert-bar">
         DDoS Protection Active — Please verify to continue
     </div>
 
@@ -390,7 +380,6 @@
             </div>
 
             <div class="turnstile-box hidden" id="turnstileBox">
-                <!-- ✅ SITE KEY YANG BENAR -->
                 <div class="cf-turnstile" 
                      data-sitekey="0x4AAAAAACmUJFfZBxDy_Gfj"
                      data-callback="onTurnstileSuccess"
@@ -417,7 +406,7 @@
                 </div>
                 <div class="info-row">
                     <span class="label">Ray ID:</span>
-                    <span class="value mono" id="rayIdText">-</span>
+                    <span class="value" id="rayIdText">-</span>
                 </div>
             </div>
 
@@ -427,7 +416,7 @@
                     <span>DDoS Protection by Cloudflare</span>
                 </div>
                 <div class="ray-id" id="rayIdFooter">
-                    Ray ID: <span class="mono" id="rayIdValue">-</span>
+                    Ray ID: <span id="rayIdValue">-</span>
                 </div>
             </div>
         </div>
