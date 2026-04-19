@@ -1,48 +1,42 @@
 <?php
-header('Content-Type: text/plain');
-header('Access-Control-Allow-Origin: *');
+header('Content-Type: application/json');
 
 $secretKey = "0x4AAAAAAC_ync8iinI3Oxflz08KHg0qJUI";
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
-    echo "FAIL";
+    echo json_encode(["success" => false]);
     exit;
 }
 
 $token = $_POST['token'] ?? '';
-if (empty($token)) {
-    echo "FAIL";
+if (!$token) {
+    echo json_encode(["success" => false]);
     exit;
 }
 
-$ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+$ip = $_SERVER['REMOTE_ADDR'] ?? '';
 
-$url = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
-
-$data = [
-    'secret'   => $secretKey,
-    'response' => $token,
-    'remoteip' => $ip
-];
-
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, $url);
-curl_setopt($ch, CURLOPT_POST, true);
-curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+$ch = curl_init("https://challenges.cloudflare.com/turnstile/v0/siteverify");
+curl_setopt_array($ch, [
+    CURLOPT_POST => true,
+    CURLOPT_POSTFIELDS => http_build_query([
+        'secret' => $secretKey,
+        'response' => $token,
+        'remoteip' => $ip
+    ]),
+    CURLOPT_RETURNTRANSFER => true
+]);
 
 $response = curl_exec($ch);
 curl_close($ch);
 
 $result = json_decode($response, true);
 
-if (isset($result['success']) && $result['success'] === true) {
-    setcookie('__cf_verify_mbg', hash('sha256', $ip . $secretKey . time()), time() + 3600, '/');
-    echo "OK";
+if (!empty($result['success'])) {
+    setcookie('__cf_verify_mbg', '1', time()+1800, '/', '', true, true);
+
+    echo json_encode(["success" => true]);
 } else {
-    echo "FAIL";
+    echo json_encode(["success" => false]);
 }
-?>
