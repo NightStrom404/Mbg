@@ -1,0 +1,20 @@
+RewriteEngine On
+
+# 1. Cek kalau user sudah verified (cookie ada)
+RewriteCond %{HTTP_COOKIE} __cf_verify_mbg [NC]
+RewriteRule ^ - [L]
+
+# 2. Cek kalau under attack mode ON (via file flag)
+# Buat file ".under-attack" di folder untuk aktifkan mode
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/under-attack\.html
+RewriteCond %{REQUEST_URI} !^/verify\.php
+RewriteCond %{REQUEST_URI} !^/check-status\.php
+RewriteCond %{DOCUMENT_ROOT}/.under-attack -f
+RewriteRule ^(.*)$ /under-attack.html [L,R=302]
+
+# 3. Normal routing ke index.html (SPA)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [L]
