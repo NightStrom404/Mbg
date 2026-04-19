@@ -2,7 +2,6 @@
 header('Content-Type: text/plain');
 header('Access-Control-Allow-Origin: *');
 
-// ✅ SECRET KEY YANG BENAR
 $secretKey = "0x4AAAAAACmUJApqFJoi7W6SxRXfjZ6wnvA";
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -36,13 +35,7 @@ curl_setopt($ch, CURLOPT_TIMEOUT, 10);
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
 
 $response = curl_exec($ch);
-$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
-
-if ($httpCode !== 200 || $response === false) {
-    echo "FAIL";
-    exit;
-}
 
 $result = json_decode($response, true);
 
